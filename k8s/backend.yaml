@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: triager
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/your-username/github-issue-triager-backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: triager-secrets
+                  key: groq-api-key
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: triager-secrets
+                  key: github-token
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://triager:triager@db:5432/triager
+            - name: REDIS_URL
+              value: redis://redis:6379/0
+            - name: CHROMA_PERSIST_DIR
+              value: /app/data/chroma_db
+            - name: ENABLE_AUTH
+              value: "true"
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: triager-secrets
+                  key: api-key
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: chroma-storage
+              mountPath: /app/data/chroma_db
+      volumes:
+        - name: chroma-storage
+          persistentVolumeClaim:
+            claimName: chroma-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: triager
+spec:
+  selector:
+    app: backend
+  ports:
+    - port: 8000
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chroma-pvc
+  namespace: triager
+spec:
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 10Gi

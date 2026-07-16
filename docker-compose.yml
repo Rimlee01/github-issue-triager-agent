@@ -1,0 +1,106 @@
+services:
+  # ── PostgreSQL ────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: triager
+      POSTGRES_PASSWORD: triager
+      POSTGRES_DB: triager
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U triager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (cache + Celery broker) ────────────────────────────
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── Backend API ──────────────────────────────────────────────
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET:-changeme-webhook-secret}
+      - DATABASE_URL=postgresql+asyncpg://triager:triager@db:5432/triager
+      - DATABASE_URL_SYNC=postgresql://triager:triager@db:5432/triager
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_PERSIST_DIR=/app/data/chroma_db
+      - HF_HOME=/app/data/hf_cache
+      - TRANSFORMERS_CACHE=/app/data/hf_cache
+      - SENTENCE_TRANSFORMERS_HOME=/app/data/hf_cache
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - ENABLE_AUTH=${ENABLE_AUTH:-false}
+      - API_KEY=${API_KEY:-changeme-api-key}
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost"]
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── Celery Worker ────────────────────────────────────────────
+  worker:
+    build: ./backend
+    command: celery -A app.tasks.celery_app worker --loglevel=info -Q ingestion --concurrency=2
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - DATABASE_URL=postgresql+asyncpg://triager:triager@db:5432/triager
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_PERSIST_DIR=/app/data/chroma_db
+      - HF_HOME=/app/data/hf_cache
+      - TRANSFORMERS_CACHE=/app/data/hf_cache
+      - SENTENCE_TRANSFORMERS_HOME=/app/data/hf_cache
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── Flower (Celery task monitor) ─────────────────────────────
+  flower:
+    build: ./backend
+    command: celery -A app.tasks.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  # ── Frontend ─────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  app_data:

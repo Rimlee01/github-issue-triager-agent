@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Env
+.env
+.env.local
+
+# Data
+backend/data/
+backend/chroma_db/
+*.sqlite3
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# New additions for v2
+*.log
+data/
+backend/data/
+__pycache__/
+*.pyc
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+node_modules/
+dist/
+.env
+backend/.env

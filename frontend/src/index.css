@@ -1,0 +1,88 @@
+/* GitHub Primer design system */
+:root {
+  --color-canvas-default: #ffffff;
+  --color-canvas-subtle: #f6f8fa;
+  --color-canvas-inset: #eaeef2;
+  --color-border-default: #d0d7de;
+  --color-border-muted: #d8dee4;
+  --color-fg-default: #1f2328;
+  --color-fg-muted: #636c76;
+  --color-fg-subtle: #6e7781;
+  --color-accent-fg: #0969da;
+  --color-accent-emphasis: #0969da;
+  --color-accent-subtle: #ddf4ff;
+  --color-success-fg: #1a7f37;
+  --color-success-emphasis: #1f883d;
+  --color-success-subtle: #dafbe1;
+  --color-attention-fg: #9a6700;
+  --color-attention-emphasis: #bf8700;
+  --color-attention-subtle: #fff8c5;
+  --color-danger-fg: #d1242f;
+  --color-danger-emphasis: #cf222e;
+  --color-danger-subtle: #ffebe9;
+  --color-done-fg: #8250df;
+  --color-done-subtle: #fbefff;
+  --color-neutral-emphasis: #6e7781;
+  --color-neutral-subtle: #f6f8fa;
+  --shadow-small: 0 1px 0 rgba(31,35,40,0.04);
+  --shadow-medium: 0 3px 6px rgba(140,149,159,0.15);
+  --shadow-large: 0 8px 24px rgba(140,149,159,0.2);
+  --radius: 6px;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+}
+
+[data-theme="dark"] {
+  --color-canvas-default: #0d1117;
+  --color-canvas-subtle: #161b22;
+  --color-canvas-inset: #010409;
+  --color-border-default: #30363d;
+  --color-border-muted: #21262d;
+  --color-fg-default: #e6edf3;
+  --color-fg-muted: #8b949e;
+  --color-fg-subtle: #6e7681;
+  --color-accent-fg: #58a6ff;
+  --color-accent-emphasis: #1f6feb;
+  --color-accent-subtle: #031d30;
+  --color-success-fg: #3fb950;
+  --color-success-emphasis: #238636;
+  --color-success-subtle: #0d2818;
+  --color-attention-fg: #d29922;
+  --color-attention-emphasis: #9e6a03;
+  --color-attention-subtle: #2b2111;
+  --color-danger-fg: #f85149;
+  --color-danger-emphasis: #b62324;
+  --color-danger-subtle: #2d1214;
+  --color-done-fg: #bc8cff;
+  --color-done-subtle: #231332;
+  --color-neutral-emphasis: #6e7781;
+  --color-neutral-subtle: #21262d;
+  --shadow-small: 0 0 transparent;
+  --shadow-medium: 0 3px 6px #010409;
+  --shadow-large: 0 8px 24px #010409;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-fg-default);
+  background: var(--color-canvas-subtle);
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: var(--font-sans); cursor: pointer; border: none; transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease; }
+button:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+button:active:not(:disabled) { transform: scale(0.96); filter: brightness(0.95); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+input, textarea, select { font-family: var(--font-sans); }
+code, pre { font-family: var(--font-mono); }
+a { color: var(--color-accent-fg); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--color-accent-fg); outline-offset: 2px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-default); border-radius: 3px; }
+
+/* Spinner animation — defined globally so it works reliably in all browsers */
+@keyframes spin { to { transform: rotate(360deg); } }
